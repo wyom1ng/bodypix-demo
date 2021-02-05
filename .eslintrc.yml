@@ -1,0 +1,33 @@
+env:
+  browser: true
+  es6: true
+extends:
+  - google
+  - prettier
+globals:
+  Atomics: readonly
+  SharedArrayBuffer: readonly
+parser: '@typescript-eslint/parser'
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+plugins:
+  - '@typescript-eslint/eslint-plugin'
+  - prettier
+rules:
+  prettier/prettier:
+    - error
+  require-jsdoc:
+    - off
+  comma-dangle:
+    - error
+    - always-multiline
+  max-len:
+    - off
+  valid-jsdoc:
+    - off
+  new-cap:
+    - off
+  # this doesn't work
+  no-unused-vars:
+    - off

@@ -1,0 +1,24 @@
+<div class='container'>
+  <section class='header'>
+    <mat-form-field class="form-field">
+      <input matInput type="number" [(ngModel)]="width" placeholder='width'>
+    </mat-form-field>
+
+    <span class='x'>x</span>
+
+    <mat-form-field class="form-field">
+      <input matInput type="number" [(ngModel)]="height" placeholder='height'>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)='onResolutionUpdate()'>Save</button>
+  </section>
+  <canvas #canvas></canvas>
+  <section class='footer'>
+    <mat-checkbox (change)='onVideoChange($event)'>Video</mat-checkbox>
+    <mat-checkbox [(ngModel)]='manipulationService.blur' [disabled]='manipulationService.substitute'>Blur</mat-checkbox>
+    <mat-checkbox [(ngModel)]='manipulationService.substitute' [disabled]='manipulationService.blur'>Substitute</mat-checkbox>
+
+
+    <input type="file" (change)='onFileChange($event)'>
+  </section>
+</div>

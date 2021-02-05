@@ -1,0 +1,40 @@
+.container {
+  width: 100%;
+  height: 100%;
+
+  color: white;
+
+  .header {
+    display: flex;
+
+    width: 100%;
+
+    justify-content: center;
+
+    .form-field {
+      width: 40px;
+    }
+
+    .x {
+      margin: 0 10px;
+      padding-top: 15px;
+    }
+
+    button {
+      margin-top: 10px;
+      margin-left: 10px;
+
+      height: 30px;
+      line-height: unset;
+    }
+  }
+
+  canvas {
+    background-color: black;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+  }
+}
