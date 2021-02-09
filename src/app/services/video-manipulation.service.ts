@@ -39,9 +39,9 @@ export class VideoManipulationService {
 
     private modelConfig: ModelConfig = {
         architecture: 'MobileNetV1',
-        multiplier: 0.5,
-        outputStride: 8,
-        quantBytes: 1,
+        multiplier: 0.75,
+        outputStride: 16,
+        quantBytes: 2,
     };
 
     get architecture(): string {
