@@ -17,7 +17,7 @@ import {ModelConfig} from '@tensorflow-models/body-pix/dist/body_pix_model';
     providedIn: 'root',
 })
 export class VideoManipulationService {
-    private inited = false;
+    private inited_ = false;
 
     private net: BodyPix | undefined;
 
@@ -27,7 +27,7 @@ export class VideoManipulationService {
     private canvasWidth = 0;
     private canvasHeight = 0;
 
-    private stop_ = false;
+    private stop_ = true;
 
     private blur_ = false;
     private substitute_ = false;
@@ -94,7 +94,15 @@ export class VideoManipulationService {
         document.body.append(this.videoElement);
     }
 
+    get inited(): boolean {
+        return this.inited_;
+    }
+
     async init(canvas: HTMLCanvasElement, width: number, height: number): Promise<void> {
+        const isRunning = !this.stop_;
+        this.stop();
+        this.inited_ = false;
+
         const constraints = {
             audio: false,
             video: {
@@ -120,7 +128,15 @@ export class VideoManipulationService {
 
         this.net = await bodyPix.load(this.modelConfig);
 
-        this.inited = true;
+        if (isRunning) {
+            this.videoElement.onloadeddata = () => {
+                this.inited_ = true;
+                this.start();
+            };
+            return;
+        }
+
+        this.inited_ = true;
     }
 
     async reloadModel(): Promise<void> {
@@ -128,7 +144,7 @@ export class VideoManipulationService {
     }
 
     async start() {
-        if (!this.inited) {
+        if (!this.inited_) {
             throw new Error('Run init(); first');
         }
 
