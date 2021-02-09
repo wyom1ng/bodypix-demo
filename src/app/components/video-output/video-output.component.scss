@@ -31,11 +31,13 @@
 
   canvas {
     background-color: black;
+    max-width: 100%;
   }
 
   .controls {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .footer {

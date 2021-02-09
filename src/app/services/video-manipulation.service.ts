@@ -143,8 +143,6 @@ export class VideoManipulationService {
         let frameEnd: number;
         const frameTimes: number[] = [];
 
-        context.font = '13px serif';
-
         while (!this.stop_) {
             frameStart = performance.now();
 
@@ -190,8 +188,9 @@ export class VideoManipulationService {
 
             const averageFrametime = getAverage(frameTimes);
             const fps = 1000 / averageFrametime;
+            context.font = '35px serif';
             context.fillStyle = '#F0F';
-            context.fillText(`${round(fps)} FPS`, 10, 15);
+            context.fillText(`${round(fps)} FPS`, 10, 35);
         }
 
         context.fillStyle = '#000';
