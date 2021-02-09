@@ -3,6 +3,15 @@ import * as bodyPix from '@tensorflow-models/body-pix';
 import {Injectable} from '@angular/core';
 import {BodyPix} from '@tensorflow-models/body-pix';
 import {substituteBackground} from '../util/rendering';
+import {getAverage, round} from '../util/math';
+import {
+    BodyPixArchitecture,
+    BodyPixInternalResolution,
+    BodyPixMultiplier,
+    BodyPixOutputStride,
+    BodyPixQuantBytes,
+} from '@tensorflow-models/body-pix/dist/types';
+import {ModelConfig} from '@tensorflow-models/body-pix/dist/body_pix_model';
 
 @Injectable({
     providedIn: 'root',
@@ -26,6 +35,55 @@ export class VideoManipulationService {
     public backgroundBlurAmount = 3;
     public edgeBlurAmount = 3;
     public flipHorizontal = false;
+    public internalResolution: BodyPixInternalResolution = 'low';
+
+    private modelConfig: ModelConfig = {
+        architecture: 'MobileNetV1',
+        multiplier: 0.5,
+        outputStride: 8,
+        quantBytes: 1,
+    };
+
+    get architecture(): string {
+        return this.modelConfig.architecture;
+    }
+
+    get multiplier(): string {
+        return this.modelConfig.multiplier.toString(10);
+    }
+
+    get outputStride(): string {
+        return this.modelConfig.outputStride.toString(10);
+    }
+
+    get quantBytes(): string {
+        return this.modelConfig.quantBytes.toString(10);
+    }
+
+    set architecture(s: string) {
+        this.modelConfig.architecture = s as BodyPixArchitecture;
+
+        if (s === 'ResNet50') {
+            if (this.modelConfig.outputStride === 8) this.modelConfig.outputStride = 16;
+            this.modelConfig.multiplier = 1;
+        }
+
+        if (this.modelConfig.outputStride === 32 && s === 'MobileNetV1') {
+            this.modelConfig.outputStride = 16;
+        }
+    }
+
+    set multiplier(s: string) {
+        this.modelConfig.multiplier = parseFloat(s) as BodyPixMultiplier;
+    }
+
+    set outputStride(s: string) {
+        this.modelConfig.outputStride = parseInt(s, 10) as BodyPixOutputStride;
+    }
+
+    set quantBytes(s: string) {
+        this.modelConfig.quantBytes = parseInt(s, 10) as BodyPixQuantBytes;
+    }
 
     private videoElement = document.createElement('video');
 
@@ -60,9 +118,13 @@ export class VideoManipulationService {
         backgroundContext.fillStyle = '#0F0';
         backgroundContext.fillRect(0, 0, width, height);
 
-        this.net = await bodyPix.load();
+        this.net = await bodyPix.load(this.modelConfig);
 
         this.inited = true;
+    }
+
+    async reloadModel(): Promise<void> {
+        this.net = await bodyPix.load(this.modelConfig);
     }
 
     async start() {
@@ -77,9 +139,19 @@ export class VideoManipulationService {
             throw new Error('Could not get 2D context');
         }
 
+        let frameStart: number;
+        let frameEnd: number;
+        const frameTimes: number[] = [];
+
+        context.font = '13px serif';
+
         while (!this.stop_) {
+            frameStart = performance.now();
+
             if (this.blur) {
-                const segmentation = await this.net!.segmentPerson(this.videoElement);
+                const segmentation = await this.net!.segmentPerson(this.videoElement, {
+                    internalResolution: this.internalResolution,
+                });
 
                 bodyPix.drawBokehEffect(
                     this.canvas!,
@@ -90,7 +162,9 @@ export class VideoManipulationService {
                     this.flipHorizontal,
                 );
             } else if (this.substitute) {
-                const segmentation = await this.net!.segmentPerson(this.videoElement);
+                const segmentation = await this.net!.segmentPerson(this.videoElement, {
+                    internalResolution: this.internalResolution,
+                });
 
                 substituteBackground(
                     this.canvas!,
@@ -105,6 +179,19 @@ export class VideoManipulationService {
             }
 
             await tf.nextFrame();
+
+            frameEnd = performance.now();
+
+            const frameTime = frameEnd - frameStart;
+            frameTimes.push(frameTime);
+            if (frameTimes.length > 50) {
+                frameTimes.shift();
+            }
+
+            const averageFrametime = getAverage(frameTimes);
+            const fps = 1000 / averageFrametime;
+            context.fillStyle = '#F0F';
+            context.fillText(`${round(fps)} FPS`, 10, 15);
         }
 
         context.fillStyle = '#000';
@@ -121,7 +208,7 @@ export class VideoManipulationService {
 
     set blur(value: boolean) {
         if (value && this.substitute_) {
-            throw new Error("Can't substitute and blur simultaneously");
+            this.substitute_ = false;
         }
 
         this.blur_ = value;
@@ -133,7 +220,7 @@ export class VideoManipulationService {
 
     set substitute(value: boolean) {
         if (value && this.blur_) {
-            throw new Error("Can't substitute and blur simultaneously");
+            this.blur_ = false;
         }
 
         this.substitute_ = value;

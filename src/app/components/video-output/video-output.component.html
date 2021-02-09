@@ -13,12 +13,113 @@
     <button mat-raised-button color="primary" (click)='onResolutionUpdate()'>Save</button>
   </section>
   <canvas #canvas></canvas>
-  <section class='footer'>
+  <section class='controls'>
     <mat-checkbox (change)='onVideoChange($event)'>Video</mat-checkbox>
-    <mat-checkbox [(ngModel)]='manipulationService.blur' [disabled]='manipulationService.substitute'>Blur</mat-checkbox>
-    <mat-checkbox [(ngModel)]='manipulationService.substitute' [disabled]='manipulationService.blur'>Substitute</mat-checkbox>
+    <mat-checkbox [(ngModel)]='manipulationService.blur'>Blur</mat-checkbox>
+    <mat-checkbox [(ngModel)]='manipulationService.substitute'>Substitute</mat-checkbox>
 
 
     <input type="file" (change)='onFileChange($event)'>
+  </section>
+  <section class="footer" *ngIf="manipulationService.blur || manipulationService.substitute">
+    <div class="form-field">
+      <mat-label>Background blur amount</mat-label>
+      <mat-slider
+        color="primary"
+        max="30"
+        min="0"
+        step="1"
+        thumbLabel="true"
+        [(ngModel)]="manipulationService.backgroundBlurAmount">
+      </mat-slider>
+    </div>
+    <div class="form-field">
+      <mat-label>Edge blur amount</mat-label>
+      <mat-slider
+        color="primary"
+        max="30"
+        min="0"
+        step="1"
+        thumbLabel="true"
+        [(ngModel)]="manipulationService.edgeBlurAmount">
+      </mat-slider>
+    </div>
+    <div class="form-field last">
+      <mat-label>Flip horizontal</mat-label>
+      <mat-checkbox color="primary"
+                  [(ngModel)]="manipulationService.flipHorizontal">
+      </mat-checkbox>
+    </div>
+    <mat-form-field appearance="fill">
+      <mat-label>Internal resolution</mat-label>
+      <select matNativeControl required [(ngModel)]="manipulationService.internalResolution">
+        <option value="low" selected>low</option>
+        <option value="medium">medium</option>
+        <option value="high">high</option>
+        <option value="full">full</option>
+      </select>
+    </mat-form-field>
+    <hr>
+    <div class="setting">
+      <mat-form-field appearance="fill">
+        <mat-label>Architecture</mat-label>
+        <select matNativeControl required #architecture [(ngModel)]="manipulationService.architecture">
+          <option value="MobileNetV1" selected>MobileNetV1</option>
+          <option value="ResNet50">ResNet50</option>
+        </select>
+      </mat-form-field>
+      <mat-icon
+        #tooltip1='matTooltip'
+        (click)="tooltip1.toggle()"
+        matTooltip="Can be either MobileNetV1 or ResNet50. It determines which BodyPix architecture to load."
+        matTooltipPosition="left">help_outline</mat-icon>
+    </div>
+    <div class="setting">
+      <mat-form-field appearance="fill">
+        <mat-label>Output stride</mat-label>
+        <select matNativeControl required [(ngModel)]="manipulationService.outputStride">
+          <option *ngIf="architecture.value === 'ResNet50'" value="32">32</option>
+          <option value="16">16</option>
+          <option *ngIf="architecture.value === 'MobileNetV1'" value="8">8</option>
+        </select>
+      </mat-form-field>
+      <mat-icon
+        #tooltip2='matTooltip'
+        (click)="tooltip2.toggle()"
+        matTooltip="It specifies the output stride of the BodyPix model. The smaller the value, the larger the output resolution, and more accurate the model at the cost of speed. A larger value results in a smaller model and faster prediction time but lower accuracy."
+        matTooltipPosition="left">help_outline</mat-icon>
+    </div>
+    <div class="setting" *ngIf="architecture.value === 'MobileNetV1'">
+      <mat-form-field appearance="fill">
+        <mat-label>Multiplier</mat-label>
+        <select matNativeControl required [(ngModel)]="manipulationService.multiplier">
+          <option value="0.50" selected>0.50</option>
+          <option value="0.75">0.75</option>
+          <option value="1.0">1.00</option>
+        </select>
+      </mat-form-field>
+      <mat-icon
+        #tooltip3='matTooltip'
+        (click)="tooltip3.toggle()"
+        matTooltip="It is the float multiplier for the depth (number of channels) for all convolution ops. The larger the value, the larger the size of the layers, and more accurate the model at the cost of speed. A smaller value results in a smaller model and faster prediction time but lower accuracy."
+        matTooltipPosition="left">help_outline</mat-icon>
+    </div>
+    <div class="setting">
+      <mat-form-field appearance="fill">
+        <mat-label>Quant bytes</mat-label>
+        <select matNativeControl required [(ngModel)]="manipulationService.quantBytes">
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="4">4</option>
+        </select>
+      </mat-form-field>
+      <mat-icon
+        #tooltip4='matTooltip'
+        (click)="tooltip4.toggle()"
+        matTooltip="This argument controls the bytes used for weight quantization. Each decrement halves the model size. A smaller value results in a smaller model and faster prediction time but lower accuracy."
+        matTooltipPosition="left">help_outline</mat-icon>
+    </div>
+
+    <button mat-raised-button color="primary" (click)='manipulationService.reloadModel()'>Save</button>
   </section>
 </div>
